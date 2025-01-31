@@ -1,0 +1,1 @@
+# planilha-gastos-financeiros-ia-VBA
