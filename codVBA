@@ -1,0 +1,85 @@
+Sub InicializarPlanilhaFinanceira()
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("Financeiro")
+    On Error GoTo 0
+    
+    If ws Is Nothing Then
+        ' Criar nova planilha caso não exista
+        Set ws = ThisWorkbook.Sheets.Add
+        ws.Name = "Financeiro"
+        
+        ' Criar cabeçalhos
+        ws.Cells(1, 1).Value = "Data"
+        ws.Cells(1, 2).Value = "Descrição"
+        ws.Cells(1, 3).Value = "Tipo (Gasto/Renda)"
+        ws.Cells(1, 4).Value = "Valor"
+        ws.Cells(1, 5).Value = "Saldo Acumulado"
+        
+        ' Formatar cabeçalhos
+        ws.Range("A1:E1").Font.Bold = True
+        ws.Columns("A:E").AutoFit
+        
+        ' Criar botões
+        CriarBotoes ws
+    End If
+End Sub
+
+Sub CriarBotoes(ws As Worksheet)
+    Dim btn As Object
+    
+    ' Criar botão para adicionar transação
+    Set btn = ws.Buttons.Add(100, 10, 150, 30)
+    btn.Caption = "Adicionar Entrada"
+    btn.OnAction = "AdicionarEntrada"
+    
+    ' Criar botão para calcular totais
+    Set btn = ws.Buttons.Add(100, 50, 150, 30)
+    btn.Caption = "Calcular Totais"
+    btn.OnAction = "CalcularTotais"
+End Sub
+
+Sub AdicionarEntrada()
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Financeiro")
+    
+    Dim ultimaLinha As Long
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row + 1
+    
+    ws.Cells(ultimaLinha, 1).Value = Date ' Data automática
+    ws.Cells(ultimaLinha, 2).Value = InputBox("Descrição da entrada:")
+    ws.Cells(ultimaLinha, 3).Value = InputBox("Tipo (Gasto/Renda):")
+    ws.Cells(ultimaLinha, 4).Value = InputBox("Valor:")
+    
+    ' Atualizar saldo acumulado
+    If ultimaLinha = 2 Then
+        ws.Cells(ultimaLinha, 5).Value = ws.Cells(ultimaLinha, 4).Value
+    Else
+        ws.Cells(ultimaLinha, 5).Value = ws.Cells(ultimaLinha - 1, 5).Value + ws.Cells(ultimaLinha, 4).Value
+    End If
+End Sub
+
+Sub CalcularTotais()
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Financeiro")
+    
+    Dim ultimaLinha As Long
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    
+    Dim totalGastos As Double, totalRenda As Double
+    totalGastos = 0
+    totalRenda = 0
+    
+    Dim i As Long
+    For i = 2 To ultimaLinha
+        If ws.Cells(i, 3).Value = "Gasto" Then
+            totalGastos = totalGastos + ws.Cells(i, 4).Value
+        ElseIf ws.Cells(i, 3).Value = "Renda" Then
+            totalRenda = totalRenda + ws.Cells(i, 4).Value
+        End If
+    Next i
+    
+    MsgBox "Total de Gastos: " & totalGastos & vbCrLf & "Total de Renda: " & totalRenda, vbInformation, "Resumo Financeiro"
+End Sub
